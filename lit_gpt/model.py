@@ -10,6 +10,14 @@ import torch
 import torch.nn as nn
 from typing_extensions import Self
 
+import transformer_engine.pytorch as te
+from transformer_engine.common import recipe
+
+ENABLE_FP8 = True
+
+# Create an FP8 recipe. Note: All input args are optional.
+fp8_recipe = recipe.DelayedScaling(margin=0, interval=1, fp8_format=recipe.Format.E4M3)
+
 from lit_gpt.config import Config
 
 
@@ -19,7 +27,11 @@ class GPT(nn.Module):
         assert config.padded_vocab_size is not None
         self.config = config
 
-        self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias)
+        if ENABLE_FP8:
+            self.lm_head = te.Linear(config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias)
+        else:
+            self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=config.lm_head_bias)
+
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
@@ -89,6 +101,12 @@ class GPT(nn.Module):
         for block in self.transformer.h:
             x = block(x, cos, sin, mask, input_pos)
         x = self.transformer.ln_f(x)
+
+        if ENABLE_FP8:
+            # Enable autocasting for the forward pass
+            with te.fp8_autocast(enabled=True, fp8_recipe=fp8_recipe):
+                return self.lm_head(x)  # (b, t, vocab_size)
+
         return self.lm_head(x)  # (b, t, vocab_size)
 
     @classmethod
@@ -170,10 +188,16 @@ class CausalSelfAttention(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
         shape = (config.n_head + 2 * config.n_query_groups) * config.head_size
-        # key, query, value projections for all heads, but in a batch
-        self.attn = nn.Linear(config.n_embd, shape, bias=config.bias)
-        # output projection
-        self.proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+
+        if ENABLE_FP8:
+            self.attn = te.Linear(config.n_embd, shape, bias=config.bias)
+            self.proj = te.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        else:
+            # key, query, value projections for all heads, but in a batch
+            self.attn = nn.Linear(config.n_embd, shape, bias=config.bias)
+            # output projection
+            self.proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+
         # disabled by default
         self.kv_cache: Optional[KVCache] = None
 
@@ -189,7 +213,12 @@ class CausalSelfAttention(nn.Module):
     ) -> torch.Tensor:
         B, T, C = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
 
-        qkv = self.attn(x)
+        if ENABLE_FP8:
+            # Enable autocasting for the forward pass
+            with te.fp8_autocast(enabled=True, fp8_recipe=fp8_recipe):
+                qkv = self.attn(x)
+        else:
+            qkv = self.attn(x)
 
         # assemble into a number of query groups to support MHA, MQA and GQA together (see `config.n_query_groups`)
         q_per_kv = self.config.n_head // self.config.n_query_groups
@@ -225,6 +254,11 @@ class CausalSelfAttention(nn.Module):
 
         y = y.reshape(B, T, C)  # re-assemble all head outputs side by side
 
+        if ENABLE_FP8:
+            # Enable autocasting for the forward pass
+            with te.fp8_autocast(enabled=True, fp8_recipe=fp8_recipe):
+                return self.proj(y)
+    
         # output projection
         return self.proj(y)
 
@@ -278,11 +312,23 @@ class GptNeoxMLP(nn.Module):
 class LLaMAMLP(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.fc_1 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
-        self.fc_2 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
-        self.proj = nn.Linear(config.intermediate_size, config.n_embd, bias=config.bias)
+        if ENABLE_FP8:
+            self.fc_1 = te.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+            self.fc_2 = te.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+            self.proj = te.Linear(config.intermediate_size, config.n_embd, bias=config.bias)
+        else:
+            self.fc_1 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+            self.fc_2 = nn.Linear(config.n_embd, config.intermediate_size, bias=config.bias)
+            self.proj = nn.Linear(config.intermediate_size, config.n_embd, bias=config.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if ENABLE_FP8:
+            # Enable autocasting for the forward pass
+            with te.fp8_autocast(enabled=True, fp8_recipe=fp8_recipe):
+                x_fc_1 = self.fc_1(x)
+                x_fc_2 = self.fc_2(x)
+                x = torch.nn.functional.silu(x_fc_1) * x_fc_2
+                return self.proj(x)
         x_fc_1 = self.fc_1(x)
         x_fc_2 = self.fc_2(x)
         x = torch.nn.functional.silu(x_fc_1) * x_fc_2

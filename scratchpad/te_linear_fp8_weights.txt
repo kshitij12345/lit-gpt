@@ -1,0 +1,56 @@
+<class 'lit_gpt.rmsnorm.RMSNorm'>
+<class 'lit_gpt.model.LLaMAMLP'>
+Loading model with {'name': 'open_llama_3b', 'hf_config': {'org': 'openlm-research', 'name': 'open_llama_3b'}, 'block_size': 2048, 'vocab_size': 32000, 'padding_multiple': 64, 'padded_vocab_size': 32000, 'n_layer': 26, 'n_head': 32, 'n_embd': 3200, 'rotary_percentage': 1.0, 'parallel_residual': False, 'bias': False, 'lm_head_bias': False, 'n_query_groups': 32, 'shared_attention_norm': False, '_norm_class': 'RMSNorm', 'norm_eps': 1e-06, '_mlp_class': 'LLaMAMLP', 'gelu_approximate': 'none', 'intermediate_size': 8640, 'rope_condense_ratio': 1, 'rope_base': 10000, 'n_expert': 0, 'n_expert_per_token': 0, 'head_size': 100, 'rope_n_elem': 100}
+Time to instantiate model: 0.16 seconds.
+iter 0: loss 11.2066, iter time: 3740.35ms, t: 2048
+iter 1: loss 11.2038, iter time: 819.62ms, t: 2048
+iter 2: loss 11.1947, iter time: 851.18ms, t: 2048
+iter 3: loss 11.1953, iter time: 887.78ms, t: 2048
+iter 4: loss 11.1859, iter time: 897.43ms, t: 2048
+iter 5: loss 11.1685, iter time: 899.03ms, t: 2048
+iter 6: loss 11.1898, iter time: 899.39ms, t: 2048
+iter 7: loss 11.1824, iter time: 902.97ms, t: 2048
+iter 8: loss 11.1870, iter time: 906.59ms, t: 2048
+iter 9: loss 11.1587, iter time: 904.98ms, t: 2048
+iter 10: loss 11.2315, iter time: 907.92ms, t: 2048
+iter 11: loss 11.2088, iter time: 907.86ms, t: 2048
+iter 12: loss 11.2165, iter time: 911.57ms, t: 2048
+iter 13: loss 11.2113, iter time: 914.44ms, t: 2048
+iter 14: loss 11.1736, iter time: 918.08ms, t: 2048
+iter 15: loss 11.1801, iter time: 919.99ms, t: 2048
+iter 16: loss 11.1883, iter time: 920.73ms, t: 2048
+iter 17: loss 11.2210, iter time: 922.71ms, t: 2048
+iter 18: loss 11.2150, iter time: 922.19ms, t: 2048
+iter 19: loss 11.1726, iter time: 925.22ms, t: 2048
+iter 20: loss 11.1997, iter time: 926.60ms, t: 2048
+iter 21: loss 11.1957, iter time: 928.33ms, t: 2048
+iter 22: loss 11.1972, iter time: 926.94ms, t: 2048
+iter 23: loss 11.1992, iter time: 934.50ms, t: 2048
+iter 24: loss 11.1801, iter time: 933.95ms, t: 2048
+iter 25: loss 11.1965, iter time: 934.69ms, t: 2048
+iter 26: loss 11.2147, iter time: 939.31ms, t: 2048
+iter 27: loss 11.2210, iter time: 940.51ms, t: 2048
+iter 28: loss 11.2049, iter time: 942.55ms, t: 2048
+iter 29: loss 11.2245, iter time: 942.41ms, t: 2048
+iter 30: loss 11.1933, iter time: 945.32ms, t: 2048
+iter 31: loss 11.1947, iter time: 950.10ms, t: 2048
+iter 32: loss 11.2088, iter time: 948.24ms, t: 2048
+iter 33: loss 11.2183, iter time: 951.08ms, t: 2048
+iter 34: loss 11.2437, iter time: 947.42ms, t: 2048
+iter 35: loss 11.1677, iter time: 955.27ms, t: 2048
+iter 36: loss 11.1868, iter time: 955.57ms, t: 2048
+iter 37: loss 11.2150, iter time: 954.66ms, t: 2048
+iter 38: loss 11.2134, iter time: 957.08ms, t: 2048
+iter 39: loss 11.1954, iter time: 959.77ms, t: 2048
+iter 40: loss 11.2344, iter time: 959.98ms, t: 2048
+iter 41: loss 11.2200, iter time: 961.19ms, t: 2048
+iter 42: loss 11.2078, iter time: 962.22ms, t: 2048
+iter 43: loss 11.2062, iter time: 964.87ms, t: 2048
+iter 44: loss 11.1611, iter time: 967.75ms, t: 2048
+iter 45: loss 11.1908, iter time: 967.07ms, t: 2048
+iter 46: loss 11.1967, iter time: 969.67ms, t: 2048
+iter 47: loss 11.1992, iter time: 969.37ms, t: 2048
+iter 48: loss 11.1976, iter time: 968.67ms, t: 2048
+iter 49: loss 11.2020, iter time: 969.81ms, t: 2048
+Total time: 42.22s
+Memory used: 35.09 GB
